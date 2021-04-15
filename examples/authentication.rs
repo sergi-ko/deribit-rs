@@ -14,7 +14,7 @@ async fn main() -> Result<(), Error> {
     let key = var("DERIBIT_KEY").unwrap();
     let secret = var("DERIBIT_SECRET").unwrap();
 
-    let drb = DeribitBuilder::default().testnet(true).build().unwrap();
+    let drb = DeribitBuilder::default().testnet(false).build().unwrap();
 
     let (mut client, mut subscription) = drb.connect().await?;
 
