@@ -1,0 +1,81 @@
+@startuml Deribit_rs_channels_communication
+
+left to right  direction
+'skinparam linetype ortho
+
+'package DeribitS {
+package WebSocketStream(FusedStream) {
+ circle wstx
+ circle wsrx
+ component Websocket
+}
+
+package Deribit_servo {
+ circle waiter_tx
+ circle waiter_rx
+}
+
+package Deribit_subscription {
+ circle stx
+ circle srx 
+}
+
+component Deribit_Waiters_HashMap
+component Deribit
+'}
+
+together {
+package DeribitAPIClient {
+	package oneshot {
+		circle oneshot_waiter_rx
+		circle oneshot_waiter_tx
+	}
+
+ component "DeribitAPIClient::call" as call
+ component "DeribitAPIClient::receive" as receive
+}
+component DeribitSubscriptionClient
+}
+
+:User: --> DeribitAPIClient
+:User: --> DeribitSubscriptionClient
+
+
+
+call ----> wstx
+note on link
+  id
+end note
+
+call --> waiter_tx
+note on link
+ id, oneshot_waiter_tx 
+end note
+wstx .down.> Websocket
+wsrx <.down. Websocket  
+Deribit <-- wsrx
+note on link
+  id
+end note
+
+waiter_rx --> Deribit_Waiters_HashMap
+note on link
+ id, oneshot_waiter_tx
+end note
+oneshot_waiter_tx <-- Deribit
+Deribit <. Deribit_Waiters_HashMap
+note on link
+  oneshot_waiter_rx
+end note
+Deribit .[norank].> Deribit_Waiters_HashMap
+note on link
+  
+  id
+end note
+receive <- oneshot_waiter_rx
+
+Deribit -[norank]-> stx
+DeribitSubscriptionClient <-- srx
+
+
+@enduml
